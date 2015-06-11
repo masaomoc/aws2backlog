@@ -1,0 +1,3 @@
+module Aws2backlog
+  VERSION = "0.0.1"
+end

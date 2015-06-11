@@ -1,0 +1,40 @@
+#!/usr/bin/env ruby
+
+require 'aws2backlog'
+require 'aws-sdk'
+
+require 'optparse'
+
+ARGV.options do |opt|
+  begin
+    aws_opts = {}
+    is_debug = false
+
+    opt.on('-h', '--help')                  { puts opt.help; exit 0 }
+    opt.on('-k', '--access-key ACCESS_KEY') { |v| aws_opts[:access_key_id]      = v }
+    opt.on('-s', '--secret-key SECRET_KEY') { |v| aws_opts[:secret_access_key]  = v }
+    opt.on('--debug')                       { is_debug = true }
+    opt.on('--profile PROFILE')             { |v| aws_opts[:credential_provider] = AWS::Core::CredentialProviders::SharedCredentialFileProvider.new(profile_name: v) }
+    opt.parse!
+
+    if aws_opts.empty?
+      puts opt.help
+      exit 1
+    end
+
+    if is_debug
+      aws_opts[:logger]    = Logger.new($stdout)
+      aws_opts[:log_level] = :debug
+    end
+
+    AWS.config(aws_opts)
+
+  rescue => e
+    $stderr.puts e
+    exit 1
+  end
+end
+
+a2b = Aws2backlog.new
+
+a2b.export
